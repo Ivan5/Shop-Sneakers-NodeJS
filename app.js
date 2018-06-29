@@ -1,8 +1,17 @@
 const express = require('express');
 const morgan = require('morgan');
+const bodyParser = require('body-parser');
 const app = express();
 
 app.use(morgan('dev'));
+app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.json());
+
+app.use((req,res,next)=>{
+  res.header('Access-Control-Allow-Origin','*');
+})
+
+//Routes wich should handle requests
 const sneakerRoutes = require('./api/routes/sneakers');
 const orderRoutes = require('./api/routes/orders')
 app.use('/sneakers', sneakerRoutes);
@@ -10,7 +19,7 @@ app.use('/orders',orderRoutes);
 
 app.use((req,res,next)=>{
   const error = new Error('Not Found');
-  error.status(404);
+  error.status=404;
   next(error);
 });
 

@@ -9,8 +9,13 @@ router.get('/',(req,res)=>{
 });
 
 router.post('/',(req,res)=>{
+  const sneaker = {
+    name: req.body.name,
+    price: req.body.price
+  }
   res.status(200).json({
-    message: 'Handling Post resques to /products'
+    message: 'Handling Post resques to /products',
+    createdSneaker: sneaker
   });
 });
 
