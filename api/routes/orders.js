@@ -7,23 +7,10 @@ const Order = require('../models/order')
 router.get('/',(req,res,next)=>{
   Order.find()
     .select('sneaker quantity _id')
+    .populate('sneaker')
     .exec()
     .then(docs => {
-      res.status(200).json({
-        count: dosc.length,
-        orders: docs.map(doc => {
-          return {
-            _id:doc.id,
-            sneaker: doc.sneaker,
-            quantity: doc.quantity,
-            request:{
-              type: 'GET',
-              url: 'http://localhost:3000/orders/'+doc._id
-            }
-          }
-        }),
-        
-      })
+      res.status(200).json(docs)
     })
     .catch(err => {
       res.status(500).json({
@@ -57,7 +44,9 @@ router.post('/',(req,res,next)=>{
 });
 
 router.get('/:orderId',(req,res,next)=>{
-  Order.findById(req.params.orderId).exec()
+  Order.findById(req.params.orderId)
+    .populate('sneaker')
+    .exec()
     .then(order => {
       res.status(200).json({
         order: order
