@@ -4,10 +4,28 @@ const Sneaker = require('../models/sneaker');
 const mongoose = require('mongoose');
 
 router.get('/',(req,res)=>{
-  Sneaker.find().exec()
+  Sneaker.find()
+    .select('name price _id')
+    .exec()
     .then(docs => {
       console.log(docs);
       if(docs.length >= 0){
+        const response = {
+          count: docs.length,
+          sneakers: docs.map(doc => {
+            return {
+              name: doc.name,
+              price: doc.price,
+              _id: doc._id,
+              url:{
+                request:{
+                  type: 'GET',
+                  url:'http://localhost:3000/sneakers/'+doc._id
+                }
+              }
+            }
+          })
+        };
         res.status(200).json(docs);
       }else{
         res.status(404).json({
@@ -33,8 +51,16 @@ router.post('/',(req,res)=>{
   sneaker.save().then(result => {
     console.log(result);
     res.status(200).json({
-      message: 'Handling Post resques to /products',
-      createdSneaker: result
+      message: 'Created sneaker successfully',
+      createdSneaker: {
+        name: result.name,
+        price: result.price,
+        _id: result._id,
+        request:{
+          type:'GET',
+          url: 'http://localhost:3000/sneakers/' +result._id
+        }
+      }
     });
   }).catch(err => {
     console.log(err);
@@ -48,11 +74,19 @@ router.post('/',(req,res)=>{
 router.get('/:sneakerId',(req,res,next)=>{
   const id = req.params.sneakerId;
   Sneaker.findById(id)
+    .select('name price _id')
     .exec()
     .then(doc => {
       console.log(doc);
       if(doc){
-        res.status(200).json(doc)
+        res.status(200).json({
+          sneaker : doc,
+          request:{
+            type: 'GET',
+            description: 'Get all products',
+            url: 'http://localhost:3000/sneakers/'
+          }
+        })
       }else{
         res.status(404).json({message: '¿Novalid entry found for provided ID'});
       }
@@ -71,8 +105,13 @@ router.patch('/:sneakerId',(req,res,next)=>{
   }
   Sneaker.update({_id:id},{$set: updateOps}).exec()
     .then(result => {
-      console.log(result);
-      res.status(200).json(result)
+      res.status(200).json({
+        message : 'Sneaker updated',
+        request:{
+          type:'GET',
+          url:'http://localhost:3000/sneakers/'+result._id
+        }
+      })
     })
     .catch(err => {
       console.log(err);
@@ -86,7 +125,14 @@ router.delete('/:sneakerId',(req,res,next)=>{
   const id = req.params.sneakerId;
   Sneaker.remove({_id: id}).exec()
     .then(result => {
-      res.status(200).json(result)
+      res.status(200).json({
+        message: 'Sneaker deleted',
+        request: {
+          type: 'POST',
+          url: 'http://localhost:3000/sneakers/',
+          body: {name:'String', price:'Number'}
+        }
+      })
     })
     .catch(err => {
       console.log(err);

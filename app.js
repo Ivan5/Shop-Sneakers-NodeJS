@@ -15,7 +15,7 @@ const sneakerRoutes = require('./api/routes/sneakers');
 const orderRoutes = require('./api/routes/orders');
 
 mongoose.connect('mongodb://localhost/node-shop');
-
+mongoose.Promise = global.Promise;
 app.use('/sneakers', sneakerRoutes);
 app.use('/orders',orderRoutes);
 
