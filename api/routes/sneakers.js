@@ -2,10 +2,28 @@ const express = require('express');
 const router = express.Router();
 const Sneaker = require('../models/sneaker');
 const mongoose = require('mongoose');
+const multer = require('multer');
+
+
+const storage = multer.diskStorage({
+  destination: function(req,file,cb){
+    cb(null,'./uploads/');
+  },
+  filename: function(req,file,cb){
+    cb(null,new Date().toISOString() +file.originalname);
+  }
+});
+const fileFilter = (req,file,cb) =>{
+  //
+
+}
+const upload = multer({storage ,limits:{
+  fileSize: 1024*1024*5
+}});
 
 router.get('/',(req,res)=>{
   Sneaker.find()
-    .select('name price _id')
+    .select('name price image _id')
     .exec()
     .then(docs => {
       console.log(docs);
@@ -16,6 +34,7 @@ router.get('/',(req,res)=>{
             return {
               name: doc.name,
               price: doc.price,
+              image:doc.image,
               _id: doc._id,
               url:{
                 request:{
@@ -32,7 +51,7 @@ router.get('/',(req,res)=>{
           message : 'No entries found'
         });
       }
-      
+
     })
     .catch(err => {
       console.log(err);
@@ -46,7 +65,8 @@ router.post('/',(req,res)=>{
   const sneaker = new Sneaker({
     _id: new mongoose.Types.ObjectId(),
     name: req.body.name,
-    price: req.body.price
+    price: req.body.price,
+    image: req.body.image
   });
   sneaker.save().then(result => {
     console.log(result);
@@ -55,6 +75,7 @@ router.post('/',(req,res)=>{
       createdSneaker: {
         name: result.name,
         price: result.price,
+        image: result.image,
         _id: result._id,
         request:{
           type:'GET',
@@ -68,13 +89,13 @@ router.post('/',(req,res)=>{
       error:err
     })
   });
-  
+
 });
 
 router.get('/:sneakerId',(req,res,next)=>{
   const id = req.params.sneakerId;
   Sneaker.findById(id)
-    .select('name price _id')
+    .select('name price image _id')
     .exec()
     .then(doc => {
       console.log(doc);
@@ -97,7 +118,7 @@ router.get('/:sneakerId',(req,res,next)=>{
     });
 });
 
-router.patch('/:sneakerId',(req,res,next)=>{
+router.put('/:sneakerId',(req,res,next)=>{
   const id = req.params.sneakerId;
   const updateOps = {};
   for(const ops of req.body){
@@ -141,7 +162,7 @@ router.delete('/:sneakerId',(req,res,next)=>{
       })
 
 
-      
+
     })
 });
 module.exports = router;
